@@ -1,0 +1,66 @@
+--- js/app.js
++++ js/app.js
+@@ -10,6 +10,7 @@
+ 
+ // ── Démarrage de l'app après connexion ────────────────────────────
+ async function boot(u) {
++  console.log("booting for user", u?.id);
+   user = u;
+ 
+   // 1. Afficher un spinner pendant le chargement
+@@ -25,23 +26,27 @@
+   document.getElementById('teamSetupWrap').style.display = 'block';
+ 
+   // 2. Charger le profil de l'utilisateur depuis la base de données
++  console.log("Fetching profile...");
+   const { data: p } = await sb.from('profiles').select('*').eq('id', u.id).single();
+   profile = p;
++  console.log("Profile resolved:", p);
+ 
+   // 3. Récupération automatique : coach sans team_id → chercher son équipe
+   if (profile && profile.role === 'coach' && !profile.team_id) {
++    console.log("Coach with no team_id, looking up team...");
+     const { data: existingTeam } = await sb.from('teams').select('*').eq('coach_id', u.id).maybeSingle();
+     if (existingTeam) {
+       currentTeam = existingTeam;
+       profile.team_id = existingTeam.id;
+       await sb.from('profiles').update({ team_id: existingTeam.id }).eq('id', u.id);
+     }
+   }
+ 
+   // 4. Récupération automatique : joueur sans team_id → chercher via la table players
+   if (profile && profile.role === 'player' && !profile.team_id) {
++    console.log("Player with no team_id, looking up players table...");
+     const { data: playerRow } = await sb.from('players').select('team_id').eq('profile_id', u.id).maybeSingle();
+     if (playerRow?.team_id) {
+       profile.team_id = playerRow.team_id;
+       await sb.from('profiles').update({ team_id: playerRow.team_id }).eq('id', u.id);
+     }
+   }
+ 
+   // 5. Pas d'équipe trouvée → afficher l'écran de setup
+   if (!profile || !profile.team_id) {
++    console.log("No team_id found, showing setup screen");
+     showSetupScreen();
+     return;
+   }
+ 
+   // 6. Charger les infos de l'équipe
+   if (!currentTeam) {
++    console.log("Fetching current team info...");
+     const { data: team } = await sb.from('teams').select('*').eq('id', profile.team_id).single();
+     currentTeam = team;
++    console.log("Team info fetched:", team);
+   }
+ 
++  console.log("Hiding spinner, starting initApp...");
+   document.getElementById('teamSetupWrap').style.display = 'none';
+   await initApp();
+ }
+ 
+ // ── Initialiser l'interface principale ────────────────────────────
+ async function initApp() {
++  console.log("initApp starting...");
+   document.getElementById('authWrap').style.display      = 'none';
+   document.getElementById('teamSetupWrap').style.display = 'none';
+   document.getElementById('app').classList.add('show');

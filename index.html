@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>CoachFoot — Gestion d'équipe</title>
+  <meta name="description" content="Application de gestion d'équipe de football : joueurs, compositions, planning, résultats et convocations."/>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#16a34a"/>
+
+  <!-- Polices Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css"/>
+
+  <!-- Supabase (base de données) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ÉCRAN D'AUTHENTIFICATION (Connexion / Inscription)
+═══════════════════════════════════════════════════════════════ -->
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
+    <div class="auth-logo">⚽ CoachFoot</div>
+    <div class="auth-sub">Gestion d'équipe de football</div>
+
+    <!-- Onglets -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Inscription</button>
+    </div>
+
+    <!-- Message d'erreur global -->
+    <div id="authError" class="auth-error"></div>
+
+    <!-- Formulaire de connexion -->
+    <div id="loginForm">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com"/></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="loginPwd" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doLogin()">Se connecter</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="showForgotPassword()" style="font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline">Mot de passe oublié ?</button>
+      </div>
+    </div>
+
+    <!-- Formulaire d'inscription -->
+    <div id="signupForm" style="display:none">
+      <div class="field"><label>Prénom et nom</label><input type="text" id="signupName" placeholder="Lucas Martin"/></div>
+      <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="ton@email.com"/></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="signupPwd" placeholder="min. 6 caractères"/></div>
+      <div class="section-label" style="margin-top:0">Je suis…</div>
+      <div class="role-selector">
+        <div class="role-btn active" id="roleCoach" onclick="selectRole('coach')">
+          <div class="role-icon">🎯</div>
+          <div class="role-name">Coach</div>
+        </div>
+        <div class="role-btn" id="rolePlayer" onclick="selectRole('player')">
+          <div class="role-icon">⚽</div>
+          <div class="role-name">Joueur</div>
+        </div>
+      </div>
+      <div class="field" id="posField" style="display:none">
+        <label>Mon poste</label>
+        <select id="signupPos">
+          <option value="GK">Gardien (GK)</option>
+          <option value="DEF">Défenseur (DEF)</option>
+          <option value="MID">Milieu (MID)</option>
+          <option value="ATT">Attaquant (ATT)</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="doSignup()">Créer mon compte</button>
+    </div>
+
+    <!-- Formulaire "Mot de passe oublié" -->
+    <div id="forgotForm" style="display:none">
+      <div style="text-align:center;font-size:32px;margin-bottom:10px">📧</div>
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.5">
+        Entre ton email — on t'envoie un lien pour réinitialiser ton mot de passe.
+      </p>
+      <div class="field"><label>Email</label><input type="email" id="resetEmail" placeholder="ton@email.com"/></div>
+      <div id="resetSuccessMsg" style="background:var(--g3);border:1px solid var(--g);color:var(--g2);border-radius:8px;padding:10px 13px;font-size:13px;margin-bottom:14px;display:none"></div>
+      <div id="resetErrorMsg" class="auth-error"></div>
+      <button class="btn-primary" onclick="sendResetEmail()">Envoyer le lien →</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="switchAuthTab('login')" style="font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer">← Retour à la connexion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     ÉCRAN DE CHANGEMENT DE MOT DE PASSE (après reset par email)
+═══════════════════════════════════════════════════════════════ -->
+<div id="changePasswordWrap" style="display:none">
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="setup-emoji">🔐</div>
+      <div class="setup-title">Nouveau mot de passe</div>
+      <div class="setup-sub">Choisis un nouveau mot de passe sécurisé</div>
+      <div class="field"><label>Nouveau mot de passe</label><input type="password" id="newPwd" placeholder="min. 6 caractères"/></div>
+      <div class="field"><label>Confirmer le mot de passe</label><input type="password" id="confirmPwd" placeholder="min. 6 caractères"/></div>
+      <div id="changePwdError" class="auth-error"></div>
+      <button class="btn-primary" onclick="changePassword()">Changer le mot de passe</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     ÉCRAN DE CONFIGURATION D'ÉQUIPE (après 1ère connexion)
+═══════════════════════════════════════════════════════════════ -->
+<div id="teamSetupWrap" style="display:none"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     APPLICATION PRINCIPALE
+═══════════════════════════════════════════════════════════════ -->
+<div class="app" id="app">
+
+  <!-- Barre supérieure -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">⚽ CoachFoot</div>
+      <div class="topbar-team" id="teamNameDisplay"></div>
+    </div>
+    <div class="topbar-user">
+      <span class="topbar-role" id="roleLabel"></span>
+      <div class="topbar-icon-btn" id="settingsTopBtn" onclick="switchPage('settings')" style="display:none" title="Paramètres">⚙️</div>
+      <div class="avatar-sm" id="userAvatar" onclick="doLogout()" title="Se déconnecter"></div>
+    </div>
+  </div>
+
+  <!-- Zone de contenu principale -->
+  <div class="content">
+
+    <!-- Page d'accueil joueur -->
+    <div class="page" id="page-home">
+      <div id="playerHome"></div>
+    </div>
+
+    <!-- Page Joueurs (coach uniquement) -->
+    <div class="page" id="page-joueurs">
+      <div class="page-title">Joueurs</div>
+      <div class="page-sub">Gérer l'effectif</div>
+      <div class="stats-row" id="playerStats"></div>
+      <div id="playersList"></div>
+    </div>
+
+    <!-- Page Composition / Terrain -->
+    <div class="page" id="page-compo">
+      <div class="page-title">Composition</div>
+      <div class="page-sub" id="compoSub">Glisse les joueurs sur le terrain</div>
+      <!-- Sélecteur de formation -->
+      <div class="schema-pills" id="schemaPills">
+        <div class="schema-pill active" onclick="setSchema('4-3-3', this)">4-3-3</div>
+        <div class="schema-pill"        onclick="setSchema('4-4-2', this)">4-4-2</div>
+        <div class="schema-pill"        onclick="setSchema('3-5-2', this)">3-5-2</div>
+        <div class="schema-pill"        onclick="setSchema('4-2-3-1', this)">4-2-3-1</div>
+      </div>
+      <!-- Terrain de football SVG -->
+      <div id="captureZone" style="padding:10px; background:var(--bg); border-radius:16px; margin-bottom:16px">
+        <div class="pitch-wrap" id="pitchWrap" style="margin-bottom:12px">
+          <svg class="pitch-svg" viewBox="0 0 300 440" xmlns="http://www.w3.org/2000/svg">
+            <rect width="300" height="440" fill="#1e8c45"/>
+            <rect x="8" y="8" width="284" height="424" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>
+            <line x1="8" y1="220" x2="292" y2="220" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <circle cx="150" cy="220" r="42" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <circle cx="150" cy="220" r="3" fill="rgba(255,255,255,.55)"/>
+            <rect x="82" y="8"   width="136" height="58" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <rect x="82" y="374" width="136" height="58" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <rect x="108" y="8"   width="84" height="26" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+            <rect x="108" y="406" width="84" height="26" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+          </svg>
+          <div class="pitch-dots" id="pitchDots"></div>
+        </div>
+        
+        <!-- Banc de touche -->
+        <div class="section-label" style="text-align:center; margin-top:0">Banc de touche</div>
+        <div id="benchZone" style="min-height:60px; background:white; border:2px dashed var(--border2); border-radius:12px; padding:10px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center;">
+          <!-- Les joueurs remplaçants vont ici -->
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:10px">
+        <button class="btn btn-outline" style="flex:1" onclick="autoCompo()">↺ Auto</button>
+        <button class="btn btn-outline" style="flex:1" onclick="exportCompo()">📸 Exporter</button>
+      </div>
+      <button class="btn btn-green" style="width:100%" id="saveCompoBtn" onclick="saveCompo()">Sauvegarder la compo</button>
+    </div>
+
+    <!-- Page Planning -->
+    <div class="page" id="page-planning">
+      <div class="page-title">Planning</div>
+      <div class="page-sub">Matchs et entraînements</div>
+      <div id="eventsList"></div>
+    </div>
+
+    <!-- Page Historique / Résultats -->
+    <div class="page" id="page-historique">
+      <div class="page-title">Historique</div>
+      <div class="page-sub">Résultats et stats</div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- Page Messages -->
+    <div class="page" id="page-messages">
+      <div class="page-title">Messages</div>
+      <div class="page-sub">Convocations de l'équipe</div>
+      <div id="messagesList"></div>
+    </div>
+
+    <!-- Page Paramètres -->
+    <div class="page" id="page-settings">
+      <div class="page-title">Paramètres</div>
+      <div class="page-sub">Mon équipe</div>
+      <div id="settingsContent"></div>
+    </div>
+
+    <!-- Page Profil Joueur -->
+    <div class="page" id="page-dashboard">
+      <div class="page-title">Profil</div>
+      <div class="page-sub">Tes statistiques de saison</div>
+      <div id="dashboardContent"></div>
+    </div>
+
+    <!-- Page La Caisse (Amendes) -->
+    <div class="page" id="page-fines">
+      <div class="page-title">La Caisse</div>
+      <div class="page-sub">Le mur de la honte de l'équipe</div>
+      <div id="finesContent"></div>
+    </div>
+
+    <!-- Page La Ligue (Tournoi Global) -->
+    <div class="page" id="page-league">
+      <div class="page-title">🏆 Championnat</div>
+      <div class="page-sub">Le classement et les matchs de la ligue</div>
+      <div id="leagueContent"></div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Navigation bas de page -->
+  <nav class="bottom-nav" id="bottomNav"></nav>
+  <!-- Bouton flottant "+" pour ajouter -->
+  <button class="fab" id="fabBtn" onclick="onFab()">+</button>
+
+</div><!-- /app -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     NOTIFICATION TEMPORAIRE (toast)
+═══════════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODALS (fenêtres pop-up)
+═══════════════════════════════════════════════════════════════ -->
+
+<!-- Modal : Ajouter un joueur -->
+<div class="modal-bg" id="modalPlayer">
+  <div class="modal">
+    <div class="modal-title">Ajouter un joueur</div>
+    <div class="field"><label>Nom complet</label><input type="text" id="pName" placeholder="Lucas Martin"/></div>
+    <div class="field-row">
+      <div class="field"><label>Poste</label>
+        <select id="pPos">
+          <option value="GK">Gardien</option>
+          <option value="DEF">Défenseur</option>
+          <option value="MID">Milieu</option>
+          <option value="ATT">Attaquant</option>
+        </select>
+      </div>
+      <div class="field"><label>N° maillot</label><input type="number" id="pNum" placeholder="9"/></div>
+    </div>
+    <div class="field"><label>Note (0-10)</label><input type="number" id="pRating" min="0" max="10" placeholder="7"/></div>
+    <div class="field"><label>Notes / commentaires</label><input type="text" id="pNotes" placeholder="Rapide, bon pied gauche..."/></div>
+    <div class="field"><label>Disponibilité</label>
+      <select id="pStatus">
+        <option value="dispo">Disponible</option>
+        <option value="absent">Absent</option>
+        <option value="incertain">Incertain</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalPlayer')">Annuler</button>
+      <button class="btn btn-green"  onclick="savePlayer()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Ajouter un événement -->
+<div class="modal-bg" id="modalEvent">
+  <div class="modal">
+    <div class="modal-title">Ajouter un événement</div>
+    <div class="field"><label>Type</label>
+      <select id="eType">
+        <option value="match">Match</option>
+        <option value="training">Entraînement</option>
+        <option value="league_match">🏆 Match de Ligue</option>
+      </select>
+    </div>
+    <div class="field"><label>Titre</label><input type="text" id="eTitle" placeholder="Match vs FC Rival"/></div>
+    <div class="field" id="eOpponentField"><label>Adversaire (Amical)</label><input type="text" id="eOpponent" placeholder="FC Rival"/></div>
+    <div class="field" id="eLeagueOpponentField" style="display:none"><label>Adversaire (Tournoi)</label><select id="eLeagueOpponent"></select></div>
+    <div class="field-row">
+      <div class="field"><label>Date</label><input type="date" id="eDate"/></div>
+      <div class="field"><label>Heure</label><input type="time" id="eTime"/></div>
+    </div>
+    <div class="field"><label>Lieu</label><input type="text" id="eLieu" placeholder="Stade Municipal"/></div>
+    <div class="field"><label>Notes</label><input type="text" id="eNotes" placeholder="Consignes, infos..."/></div>
+    <div class="field"><label>🧹 Corvées (Optionnel)</label><input type="text" id="eChores" placeholder="Max amène les maillots..."/></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalEvent')">Annuler</button>
+      <button class="btn btn-green"  onclick="saveEvent()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Générer une convocation -->
+<div class="modal-bg" id="modalMessage">
+  <div class="modal">
+    <div class="modal-title">Générer une convocation</div>
+    <div class="field"><label>Adversaire</label><input type="text" id="mAdv" placeholder="FC Rival"/></div>
+    <div class="field-row">
+      <div class="field"><label>Date du match</label><input type="date" id="mDate"/></div>
+      <div class="field"><label>Coup d'envoi</label><input type="time" id="mKO"/></div>
+    </div>
+    <div class="field"><label>Heure de RDV</label><input type="text" id="mRDV" placeholder="13h30"/></div>
+    <div class="field"><label>Lieu / Stade</label><input type="text" id="mLieu" placeholder="Stade Municipal"/></div>
+    <div class="field"><label>Message du coach (optionnel)</label><input type="text" id="mMsg" placeholder="On va les avoir !"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalMessage')">Annuler</button>
+      <button class="btn btn-green"  onclick="genAndSaveMessage()">Générer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Saisir le résultat d'un match -->
+<div class="modal-bg" id="modalResult">
+  <div class="modal">
+    <div class="modal-title">Saisir le résultat</div>
+    <input type="hidden" id="resultEventId"/>
+    <div class="field-row">
+      <div class="field"><label>Nos buts</label><input type="number" id="rUs"   min="0" value="0"/></div>
+      <div class="field"><label>Leurs buts</label><input type="number" id="rThem" min="0" value="0"/></div>
+    </div>
+    <div class="field"><label>Commentaire</label><input type="text" id="rNotes" placeholder="Belle victoire collective !"/></div>
+    <div class="section-label">Notes joueurs</div>
+    <div id="playerRatingsForm"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalResult')">Annuler</button>
+      <button class="btn btn-green"  onclick="saveResult()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Détail d'un joueur -->
+<div class="modal-bg" id="modalPlayerDetail">
+  <div class="modal">
+    <div id="playerDetailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalPlayerDetail')">Fermer</button>
+      <button class="btn btn-red btn-sm" id="deletePlayerBtn">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Ajouter une amende -->
+<div class="modal-bg" id="modalFine">
+  <div class="modal">
+    <div class="modal-title">💰 Infliger une amende</div>
+    <div class="field"><label>Joueur sanctionné</label>
+      <select id="fPlayer"></select>
+    </div>
+    <div class="field"><label>Montant (€)</label><input type="number" id="fAmount" placeholder="2.50" step="0.5" /></div>
+    <div class="field"><label>Motif</label><input type="text" id="fReason" placeholder="Retard à l'entraînement, oublié les chasubles..."/></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalFine')">Annuler</button>
+      <button class="btn btn-red" onclick="saveFine()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Voter MVP -->
+<div class="modal-bg" id="modalMvp">
+  <div class="modal">
+    <div class="modal-title">👑 Élire l'homme du match</div>
+    <input type="hidden" id="mvpEventId"/>
+    <div class="field">
+      <label>Qui mérite la couronne ?</label>
+      <select id="mvpPlayer"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalMvp')">Annuler</button>
+      <button class="btn btn-green" onclick="saveMvpVote()">À voté !</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal : Saisir score Ligue -->
+<div class="modal-bg" id="modalLeagueResult">
+  <div class="modal">
+    <div class="modal-title">🚨 Résultat du match</div>
+    <input type="hidden" id="lrMatchId"/>
+    <div class="field" style="display:flex; gap:10px">
+        <div style="flex:1"><label id="lrLabelHome">Home</label><input type="number" id="lrHome" /></div>
+        <div style="flex:1"><label id="lrLabelAway">Away</label><input type="number" id="lrAway" /></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalLeagueResult')">Annuler</button>
+      <button class="btn btn-green" onclick="saveLeagueResult()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS JAVASCRIPT (chargés dans l'ordre des dépendances)
+═══════════════════════════════════════════════════════════════ -->
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="js/store.js"></script>     <!-- 0. State management (Store) -->
+<script src="js/config.js"></script>    <!-- 1. Config + variables globales -->
+<script src="js/helpers.js"></script>   <!-- 2. Fonctions utilitaires -->
+<script src="js/auth.js"></script>      <!-- 3. Authentification -->
+<script src="js/team.js"></script>      <!-- 4. Gestion d'équipe -->
+<script src="js/players.js"></script>   <!-- 5. Joueurs -->
+<script src="js/compo.js"></script>     <!-- 6. Composition tactique -->
+<script src="js/planning.js"></script>  <!-- 7. Planning et disponibilités -->
+<script src="js/history.js"></script>   <!-- 8. Historique et résultats -->
+<script src="js/messages.js"></script>  <!-- 9. Messages et convocations -->
+<script src="js/settings.js"></script>  <!-- 10. Paramètres -->
+<script src="js/dashboard.js"></script> <!-- 11. Dashboard joueur -->
+<script src="js/fines.js"></script>     <!-- 12. Amendes (La Caisse) -->
+<script src="js/league.js"></script>    <!-- 13. Système League (Tournoi) -->
+<script src="js/app.js"></script>       <!-- 14. Logique principale (à charger en dernier) -->
+
+<!-- Désactivation du Service Worker (Bug Safari Infinite Hang API) -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister().then(function(boolean) {
+          console.log("Service Worker désenregistré, force reload requis...");
+      });
+    }
+  });
+  // Nettoyage manuel des anciens caches
+  caches.keys().then(keys => {
+    keys.forEach(key => caches.delete(key));
+  });
+}
+</script>
+
+</body>
+</html>

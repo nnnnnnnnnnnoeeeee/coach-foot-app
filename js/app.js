@@ -1,0 +1,272 @@
+/**
+ * app.js — Logique principale de l'application
+ *
+ * Gère :
+ * - Le démarrage (boot) : chargement du profil, récupération de l'équipe
+ * - L'initialisation de l'interface (initApp)
+ * - La navigation entre les pages
+ * - Le chargement des données depuis Supabase
+ * - Le gestionnaire d'état d'authentification (onAuthStateChange)
+ */
+
+// ── Démarrage de l'app après connexion ────────────────────────────
+async function boot(u) {
+  console.log("booting for user", u?.id);
+  user = u;
+
+  // 1. Afficher un spinner pendant le chargement
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('teamSetupWrap').innerHTML = `
+    <div class="setup-wrap">
+      <div style="text-align:center;color:rgba(255,255,255,.8)">
+        <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
+        <div style="font-size:15px;font-weight:500">Chargement…</div>
+      </div>
+    </div>`;
+  document.getElementById('teamSetupWrap').style.display = 'block';
+
+  // 2. Charger le profil de l'utilisateur depuis la base de données
+  console.log("Fetching profile...");
+  let p = null;
+  try {
+    const { data, error } = await Promise.race([
+      sb.from('profiles').select('*').eq('id', u.id).single(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+    ]);
+    if (error) console.warn("Profile fetch error:", error);
+    p = data;
+  } catch (e) {
+    console.error("Profile fetch failed:", e.message);
+    document.getElementById('teamSetupWrap').innerHTML = `
+      <div class="setup-wrap">
+        <div style="text-align:center;color:rgba(255,255,255,.8)">
+          <div style="font-size:36px;margin-bottom:16px">⚠️</div>
+          <div style="font-size:15px;font-weight:600">Impossible de charger le profil</div>
+          <div style="font-size:13px;margin-top:8px;opacity:.7;line-height:1.5">
+            Vérifie ta connexion internet<br>ou que la base de données est active.
+          </div>
+          <button onclick="doLogout()" style="margin-top:24px;padding:10px 24px;border-radius:8px;border:none;background:white;color:#16a34a;font-weight:600;cursor:pointer;font-size:14px">
+            ← Retour à la connexion
+          </button>
+        </div>
+      </div>`;
+    return;
+  }
+  profile = p;
+  console.log("Profile resolved:", p);
+
+  // 3. Récupération automatique : coach sans team_id → chercher son équipe
+  if (profile && profile.role === 'coach' && !profile.team_id) {
+    console.log("Coach with no team_id, looking up team...");
+    const { data: existingTeam } = await sb.from('teams').select('*').eq('coach_id', u.id).maybeSingle();
+    if (existingTeam) {
+      currentTeam = existingTeam;
+      profile.team_id = existingTeam.id;
+      await sb.from('profiles').update({ team_id: existingTeam.id }).eq('id', u.id);
+    }
+  }
+
+  // 4. Récupération automatique : joueur sans team_id → chercher via la table players
+  if (profile && profile.role === 'player' && !profile.team_id) {
+    console.log("Player with no team_id, looking up players table...");
+    const { data: playerRow } = await sb.from('players').select('team_id').eq('profile_id', u.id).maybeSingle();
+    if (playerRow?.team_id) {
+      profile.team_id = playerRow.team_id;
+      await sb.from('profiles').update({ team_id: playerRow.team_id }).eq('id', u.id);
+    }
+  }
+
+  // 5. Pas d'équipe trouvée → afficher l'écran de setup
+  if (!profile || !profile.team_id) {
+    showSetupScreen();
+    return;
+  }
+
+  // 6. Charger les infos de l'équipe
+  if (!currentTeam) {
+    const { data: team } = await sb.from('teams').select('*').eq('id', profile.team_id).single();
+    currentTeam = team;
+  }
+
+  document.getElementById('teamSetupWrap').style.display = 'none';
+  await initApp();
+}
+
+// ── Initialiser l'interface principale ────────────────────────────
+async function initApp() {
+  document.getElementById('authWrap').style.display      = 'none';
+  document.getElementById('teamSetupWrap').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+
+  // Mettre à jour la barre supérieure
+  document.getElementById('userAvatar').textContent     = initials(profile.full_name || profile.email);
+  document.getElementById('roleLabel').textContent      = isCoach() ? 'Coach' : 'Joueur';
+  document.getElementById('roleLabel').className        = 'topbar-role ' + (isCoach() ? 'role-coach' : 'role-player');
+  document.getElementById('teamNameDisplay').textContent = currentTeam?.name || '';
+  document.getElementById('settingsTopBtn').style.display = isCoach() ? 'flex' : 'none';
+
+  buildNav();
+  await loadAll();
+  switchPage(isCoach() ? 'joueurs' : 'home');
+}
+
+// ── Construire la barre de navigation du bas ───────────────────────
+function buildNav() {
+  const nav = document.getElementById('bottomNav');
+
+  // Onglets différents selon le rôle
+  const tabs = isCoach()
+    ? [
+        { id: 'joueurs',    icon: '👥', label: 'Joueurs'    },
+        { id: 'compo',      icon: '🏟', label: 'Compo'      },
+        { id: 'planning',   icon: '📅', label: 'Planning'   },
+        { id: 'league',     icon: '🏆', label: 'Ligue'      },
+        { id: 'messages',   icon: '💬', label: 'Messages'   }
+      ]
+    : [
+        { id: 'home',      icon: '🏠', label: 'Accueil'  },
+        { id: 'league',    icon: '🏆', label: 'Ligue'    },
+        { id: 'planning',  icon: '📅', label: 'Planning' },
+        { id: 'messages',  icon: '💬', label: 'Messages' },
+        { id: 'dashboard', icon: '👤', label: 'Profil'   }
+      ];
+
+  nav.innerHTML = tabs.map(t => `
+    <button class="nav-btn" data-page="${t.id}" onclick="switchPage('${t.id}')">
+      <span class="nav-icon">${t.icon}</span>
+      <span class="nav-label">${t.label}</span>
+    </button>`).join('');
+
+  // Le bouton + n'est visible que pour les coachs
+  document.getElementById('fabBtn').style.display = isCoach() ? 'flex' : 'none';
+}
+
+// ── Changer de page ────────────────────────────────────────────────
+function switchPage(id) {
+  // Cacher toutes les pages, afficher la bonne
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === id));
+
+  const page = document.getElementById('page-' + id);
+  if (page) {
+    page.classList.add('active');
+    renderPage(id);
+  }
+}
+
+// ── Appeler la bonne fonction de rendu selon la page ───────────────
+function renderPage(id) {
+  if (id === 'joueurs')    renderPlayers();
+  if (id === 'compo')      renderPitch();
+  if (id === 'planning')   renderPlanning();
+  if (id === 'historique') renderHistory();
+  if (id === 'league')     renderLeague();
+  if (id === 'messages')   renderMessages();
+  if (id === 'home')       renderPlayerHome();
+  if (id === 'settings')   renderSettings();
+  if (id === 'dashboard')  renderDashboard();
+  if (id === 'fines')      renderFines();
+}
+
+// ── Charger toutes les données de l'équipe depuis Supabase ─────────
+async function loadAll() {
+  const tId = profile.team_id;
+  if (!tId) return;
+
+  const [
+    { data: pData },
+    { data: eData },
+    { data: rData },
+    { data: mData },
+    { data: fData },
+    { data: cData },
+    { data: vData },
+    { data: lmData },
+    { data: ltData }
+  ] = await Promise.all([
+    sb.from('players').select('*').eq('team_id', tId).order('name'),
+    sb.from('events').select('*').eq('team_id', tId).order('event_date', { ascending: false }),
+    sb.from('match_results').select('*, events(*), player_match_stats(*)').eq('team_id', tId).order('created_at', { ascending: false }),
+    sb.from('messages').select('*').eq('team_id', tId).order('created_at', { ascending: false }),
+    sb.from('fines').select('*').eq('team_id', tId).order('created_at', { ascending: false }),
+    sb.from('event_cars').select('*').eq('team_id', tId),
+    sb.from('mvp_votes').select('*').eq('team_id', tId),
+    sb.from('league_matches').select('*').order('match_date', { ascending: false }),
+    sb.from('league_teams').select('*').order('name')
+  ]);
+
+  store.update({
+    players: pData || [],
+    events: eData || [],
+    results: rData || [],
+    messages: mData || [],
+    fines: fData || [],
+    cars: cData || [],
+    mvp_votes: vData || [],
+    league_matches: lmData || [],
+    league_teams: ltData || []
+  });
+
+  // Charger la dernière compo
+  const nextMatch = events.find(e => e.type === 'match' && new Date(e.event_date) >= new Date());
+  if (nextMatch) {
+    const { data: comp } = await sb.from('compositions').select('*, composition_slots(*)').eq('event_id', nextMatch.id).single();
+    if (comp) {
+      currentCompo.schema = comp.schema;
+      currentCompo.eventId = comp.event_id;
+      currentCompo.slots = comp.composition_slots.map(s => ({
+        role: s.role, x: s.pos_x, y: s.pos_y, playerId: s.player_id
+      }));
+    }
+  }
+}
+
+// ── Bouton flottant "+" ────────────────────────────────────────────
+function onFab() {
+  const currentPage = document.querySelector('.nav-btn.active')?.dataset.page;
+  if (currentPage === 'joueurs')  openModal('modalPlayer');
+  else if (currentPage === 'planning') openModal('modalEvent');
+  else if (currentPage === 'messages') openModal('modalMessage');
+  else openModal('modalEvent');
+}
+
+// ── Fermer les modals en cliquant sur le fond ──────────────────────
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+
+// ── Masquer le champ "adversaire" si type = entraînement ──────────
+document.getElementById('eType').addEventListener('change', function() {
+  document.getElementById('eOpponentField').style.display = this.value === 'match' ? '' : 'none';
+  document.getElementById('eLeagueOpponentField').style.display = this.value === 'league_match' ? '' : 'none';
+  
+  if(this.value === 'league_match') {
+      const teams = store.get('league_teams') || [];
+      // On ne peut pas s'affronter soi-même
+      document.getElementById('eLeagueOpponent').innerHTML = teams
+          .filter(t => t.id !== profile.team_id)
+          .map(t => `<option value="${t.id}">${t.name}</option>`)
+          .join('');
+  }
+});
+
+// ── Gestionnaire d'état d'authentification ─────────────────────────
+// Ce bloc écoute tous les changements de session (connexion, déconnexion, etc.)
+sb.auth.onAuthStateChange(async (event, session) => {
+  // Cas spécial : l'utilisateur vient de cliquer sur un lien de reset de mot de passe
+  if (event === 'PASSWORD_RECOVERY') {
+    showChangePasswordScreen();
+    return;
+  }
+
+  if (session?.user) {
+    await boot(session.user);
+  } else {
+    // Utilisateur déconnecté → retour à l'écran de connexion
+    document.getElementById('teamSetupWrap').style.display      = 'none';
+    document.getElementById('changePasswordWrap').style.display = 'none';
+    document.getElementById('app').classList.remove('show');
+    document.getElementById('authWrap').style.display = 'flex';
+    switchAuthTab('login');
+  }
+});

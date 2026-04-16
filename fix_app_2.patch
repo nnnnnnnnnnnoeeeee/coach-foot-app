@@ -1,0 +1,37 @@
+--- js/app.js
++++ js/app.js
+@@ -155,7 +155,9 @@
+   const tId = profile.team_id;
+   if (!tId) return;
+ 
++  console.log("loadAll: fetching all data in Promise.all...");
+   const [
+     { data: pData },
+     { data: eData },
+     { data: rData },
+@@ -173,7 +175,9 @@
+     sb.from('league_matches').select('*').order('match_date', { ascending: false }),
+     sb.from('league_teams').select('*').order('name')
+   ]);
++  console.log("loadAll: Promise.all finished");
+ 
++  console.log("loadAll: updating store with new data...");
+   store.update({
+     players: pData || [],
+     events: eData || [],
+@@ -185,6 +189,7 @@
+     league_matches: lmData || [],
+     league_teams: ltData || []
+   });
++  console.log("loadAll: store updated");
+ 
+   // Charger la dernière compo
+   const nextMatch = events.find(e => e.type === 'match' && new Date(e.event_date) >= new Date());
+@@ -198,6 +203,7 @@
+       }));
+     }
+   }
++  console.log("loadAll: composition resolved");
+ }
+ 
+ // ── Bouton flottant "+" ────────────────────────────────────────────

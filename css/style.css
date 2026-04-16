@@ -1,0 +1,293 @@
+/* ══════════════════════════════════════════
+   CoachFoot — Feuille de styles principale
+   ══════════════════════════════════════════ */
+
+/* ── Variables globales ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#16a34a;--g2:#15803d;--g3:#dcfce7;--gd:#052e16;
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--muted:#64748b;--muted2:#94a3b8;
+  --red:#dc2626;--red2:#fef2f2;
+  --amber:#d97706;--amber2:#fffbeb;
+  --blue:#2563eb;--blue2:#eff6ff;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.1),0 4px 10px rgba(0,0,0,.06);
+  --r:10px;--r2:14px;--r3:20px;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+
+/* ══════════════════════════════════════════
+   AUTHENTIFICATION
+   ══════════════════════════════════════════ */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#15803d 100%)}
+.auth-card{background:#fff;border-radius:24px;padding:36px 32px;width:100%;max-width:400px;box-shadow:var(--shadow-lg)}
+.auth-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--g2);text-align:center;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
+.auth-tabs{display:flex;border-radius:10px;background:var(--bg);padding:4px;gap:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s}
+.auth-tab.active{background:#fff;color:var(--text);box-shadow:var(--shadow)}
+.auth-error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:10px 13px;font-size:13px;margin-bottom:14px;display:none}
+.auth-error.show{display:block}
+
+
+/* ══════════════════════════════════════════
+   FORMULAIRES
+   ══════════════════════════════════════════ */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.field input,.field select{width:100%;padding:11px 13px;border:1px solid var(--border2);border-radius:9px;font-size:14px;background:#fff;color:var(--text);outline:none;transition:.15s;font-family:'DM Sans',sans-serif}
+.field input:focus,.field select:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:16px}
+
+/* Sélecteur de rôle (Inscription) */
+.role-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.role-btn{padding:12px;border:1.5px solid var(--border2);border-radius:10px;background:#fff;cursor:pointer;text-align:center;transition:.15s}
+.role-btn.active{border-color:var(--g);background:var(--g3)}
+.role-btn .role-icon{font-size:22px;margin-bottom:4px}
+.role-btn .role-name{font-size:12px;font-weight:500;color:var(--text)}
+
+
+/* ══════════════════════════════════════════
+   BOUTONS
+   ══════════════════════════════════════════ */
+.btn-primary{width:100%;padding:13px;background:var(--g);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.3px;transition:.15s;margin-top:4px}
+.btn-primary:hover{background:var(--g2)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid;transition:.15s;font-family:'DM Sans',sans-serif}
+.btn-green{background:var(--g);color:#fff;border-color:var(--g)}.btn-green:hover{background:var(--g2)}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border2)}.btn-outline:hover{background:var(--bg)}
+.btn-red{background:var(--red2);color:var(--red);border-color:#fecaca}.btn-red:hover{background:#fee2e2}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:7px}
+.btn-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);transition:.15s}
+.btn-icon:hover{background:var(--bg)}
+.btn-white{background:#fff;color:var(--g2);border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:.15s}
+.btn-white:hover{background:var(--g3)}
+.btn-danger{background:var(--red2);color:var(--red);border:1px solid #fecaca;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.15s;width:100%}
+.btn-danger:hover{background:#fee2e2}
+
+
+/* ══════════════════════════════════════════
+   ÉCRAN DE CONFIGURATION ÉQUIPE
+   ══════════════════════════════════════════ */
+.setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#15803d 100%)}
+.setup-card{background:#fff;border-radius:24px;padding:36px 32px;width:100%;max-width:400px;box-shadow:var(--shadow-lg)}
+.setup-emoji{font-size:48px;text-align:center;margin-bottom:12px}
+.setup-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px}
+.setup-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
+
+/* Boîte de prévisualisation du code d'invitation */
+.code-preview-box{background:linear-gradient(135deg,var(--gd),#14532d);border-radius:16px;padding:24px 20px;text-align:center;margin:16px 0}
+.code-preview-label{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.code-preview-text{font-family:'Syne',sans-serif;font-size:38px;font-weight:700;color:#fff;letter-spacing:8px;margin-bottom:6px}
+.code-preview-hint{font-size:12px;color:rgba(255,255,255,.6)}
+
+/* Champ de saisie du code */
+.code-input-field{width:100%;padding:16px 13px;border:2px solid var(--border2);border-radius:12px;font-size:24px;font-weight:700;font-family:'Syne',sans-serif;background:#fff;color:var(--text);outline:none;transition:.15s;text-align:center;letter-spacing:6px;text-transform:uppercase}
+.code-input-field:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+
+
+/* ══════════════════════════════════════════
+   STRUCTURE PRINCIPALE DE L'APP
+   ══════════════════════════════════════════ */
+.app{display:none;flex-direction:column;min-height:100vh}
+.app.show{display:flex}
+
+/* Barre supérieure */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.topbar-left{}
+.topbar-logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--g2);line-height:1}
+.topbar-team{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.topbar-user{display:flex;align-items:center;gap:8px}
+.topbar-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.role-coach{background:var(--g3);color:var(--g2)}
+.role-player{background:var(--blue2);color:var(--blue)}
+.avatar-sm{width:32px;height:32px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;cursor:pointer;flex-shrink:0}
+.topbar-icon-btn{width:32px;height:32px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:.15s}
+.topbar-icon-btn:hover{background:var(--bg)}
+.content{flex:1;padding:16px;padding-bottom:80px;max-width:520px;margin:0 auto;width:100%}
+
+/* Navigation bas de page */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.nav-btn{flex:1;padding:10px 4px 12px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted2);transition:.15s;font-family:'DM Sans',sans-serif}
+.nav-btn.active{color:var(--g)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:10px;font-weight:500}
+
+/* Bouton flottant + */
+.fab{position:fixed;bottom:76px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--g);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:center;transition:.15s;z-index:90}
+.fab:hover{background:var(--g2);transform:scale(1.05)}
+
+
+/* ══════════════════════════════════════════
+   PAGES
+   ══════════════════════════════════════════ */
+.page{display:none}.page.active{display:block}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+
+/* ══════════════════════════════════════════
+   CARTES ET COMPOSANTS
+   ══════════════════════════════════════════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card-row{display:flex;align-items:center;gap:12px}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* Avatars joueurs (couleur par poste) */
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.av-GK{background:#fef3c7;color:#92400e}
+.av-DEF{background:#dbeafe;color:#1e40af}
+.av-MID{background:#dcfce7;color:#166534}
+.av-ATT{background:#fce7f3;color:#9d174d}
+.info{flex:1;min-width:0}
+.info-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info-sub{font-size:12px;color:var(--muted);margin-top:1px}
+
+/* Badges de statut */
+.badge{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.b-dispo{background:var(--g3);color:var(--g2)}
+.b-absent{background:var(--red2);color:var(--red)}
+.b-incertain{background:var(--amber2);color:var(--amber)}
+.b-confirmed{background:var(--g3);color:var(--g2)}
+.b-declined{background:var(--red2);color:var(--red)}
+.b-pending{background:#f1f5f9;color:var(--muted)}
+.b-match{background:var(--g3);color:var(--g2)}
+.b-training{background:var(--blue2);color:var(--blue)}
+.b-win{background:var(--g3);color:var(--g2)}
+.b-draw{background:#f1f5f9;color:var(--muted)}
+.b-loss{background:var(--red2);color:var(--red)}
+
+/* Notes tag */
+.notes-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--muted);margin-top:4px}
+
+
+/* ══════════════════════════════════════════
+   STATISTIQUES
+   ══════════════════════════════════════════ */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center;box-shadow:var(--shadow)}
+.stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--text)}
+.stat-num.green{color:var(--g)}
+.stat-num.red{color:var(--red)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+
+
+/* ══════════════════════════════════════════
+   TERRAIN / COMPOSITION
+   ══════════════════════════════════════════ */
+.pitch-wrap{position:relative;border-radius:14px;overflow:hidden;margin-bottom:16px;aspect-ratio:.68}
+.pitch-svg{position:absolute;inset:0;width:100%;height:100%}
+.pitch-dots{position:absolute;inset:0}
+.pdot{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:grab;user-select:none;touch-action:none}
+.pdot.dragging{cursor:grabbing;z-index:10}
+.pdot-circle{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a3c27;margin:0 auto 2px;border:2px solid rgba(255,255,255,.4);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:transform .12s}
+.pdot-circle.empty{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);border:2px dashed rgba(255,255,255,.5);font-size:9px}
+.pdot-circle:hover{transform:scale(1.1)}
+.pdot-label{font-size:9px;color:rgba(255,255,255,.95);font-weight:500;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.schema-pills{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.schema-pill{padding:6px 13px;border:1px solid var(--border2);border-radius:20px;background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s}
+.schema-pill.active{background:var(--g);color:#fff;border-color:var(--g)}
+
+
+/* ══════════════════════════════════════════
+   PLANNING / ÉVÉNEMENTS
+   ══════════════════════════════════════════ */
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);border-left:4px solid}
+.ec-match{border-left-color:var(--g)}
+.ec-training{border-left-color:var(--blue)}
+.event-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.event-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.event-actions{display:flex;gap:8px;margin-top:10px}
+
+/* Boutons de disponibilité */
+.avail-btns{display:flex;gap:8px}
+.avail-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid;font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:.15s}
+.avail-btn.yes{border-color:var(--g);color:var(--g);background:#fff}.avail-btn.yes.active,.avail-btn.yes:hover{background:var(--g3)}
+.avail-btn.no{border-color:var(--red);color:var(--red);background:#fff}.avail-btn.no.active,.avail-btn.no:hover{background:var(--red2)}
+.avail-btn.maybe{border-color:var(--amber);color:var(--amber);background:#fff}.avail-btn.maybe.active,.avail-btn.maybe:hover{background:var(--amber2)}
+
+
+/* ══════════════════════════════════════════
+   HISTORIQUE / RÉSULTATS
+   ══════════════════════════════════════════ */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.score-display{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin:8px 0}
+.player-stat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.player-stat-row:last-child{border:none}
+.star-rating{display:flex;gap:3px}
+.star{font-size:14px;cursor:pointer;opacity:.3;transition:.1s}
+.star.active{opacity:1}
+
+
+/* ══════════════════════════════════════════
+   MESSAGES
+   ══════════════════════════════════════════ */
+.msg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.msg-body{background:var(--bg);border-radius:8px;padding:12px;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--text);margin-top:10px;border:1px solid var(--border)}
+.copy-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--g);color:var(--g);background:none;cursor:pointer;transition:.15s}
+.copy-btn:hover{background:var(--g3)}
+.copy-btn.copied{background:var(--g3);color:var(--g2)}
+
+
+/* ══════════════════════════════════════════
+   ACCUEIL JOUEUR
+   ══════════════════════════════════════════ */
+.next-match-card{background:linear-gradient(135deg,var(--g2),var(--g));border-radius:var(--r2);padding:20px;color:#fff;margin-bottom:20px;box-shadow:var(--shadow-lg)}
+.nmc-label{font-size:12px;opacity:.8;margin-bottom:4px}
+.nmc-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:2px}
+.nmc-meta{font-size:13px;opacity:.85}
+
+
+/* ══════════════════════════════════════════
+   PARAMÈTRES
+   ══════════════════════════════════════════ */
+.settings-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border:none}
+.settings-row-label{font-size:12px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.settings-row-value{font-size:15px;font-weight:600;color:var(--text)}
+.invite-code-card{background:linear-gradient(135deg,var(--gd),#14532d);border-radius:var(--r2);padding:20px;text-align:center;margin-bottom:16px}
+.invite-code-card-label{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.invite-code-card-code{font-family:'Syne',sans-serif;font-size:36px;font-weight:700;color:#fff;letter-spacing:8px;margin-bottom:8px}
+.invite-code-card-hint{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:16px}
+
+
+/* ══════════════════════════════════════════
+   MODALS
+   ══════════════════════════════════════════ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:flex-end;justify-content:center}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:520px;transform:translateY(100%);transition:.25s ease;max-height:90vh;overflow-y:auto}
+.modal-bg.open .modal{transform:translateY(0)}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;margin-top:14px}
+.modal-actions .btn{flex:1}
+
+
+/* ══════════════════════════════════════════
+   ÉTATS VIDES ET CHARGEMENT
+   ══════════════════════════════════════════ */
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-text{font-size:14px}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted)}
+.spinner{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;margin-right:10px}
+
+
+/* ══════════════════════════════════════════
+   TOAST (notification temporaire)
+   ══════════════════════════════════════════ */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+   ══════════════════════════════════════════ */
+@keyframes spin{to{transform:rotate(360deg)}}

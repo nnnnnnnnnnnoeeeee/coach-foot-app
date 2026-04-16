@@ -1,0 +1,96 @@
+# ⚽ Documentation du Projet CoachFoot
+
+**CoachFoot** est une application web progressive (PWA) de gestion d'équipe de football amateur. Elle est conçue pour simplifier la vie des entraîneurs (conception de compositions, suivi des présences, statistiques) et centraliser la communication avec les joueurs (convocations, suivi des matchs).
+
+L'application fonctionne selon une architecture **multi-équipes (multi-tenant)** : un même déploiement héberge plusieurs équipes de manière totalement isolée et sécurisée.
+
+---
+
+## 🛠️ Stack Technique
+
+*   **Frontend** : HTML5, CSS3, JavaScript (Vanilla - sans framework pour rester léger et rapide).
+*   **Backend (BaaS)** : Supabase
+    *   *Supabase Auth* : Gestion des inscriptions, connexions, rôles et réinitialisation de mots de passe.
+    *   *Supabase Database* : Base de données PostgreSQL pour stocker toutes les données relationnelles.
+*   **Hébergement** : GitHub Pages (déploiement continu à chaque push sur la branche `main`).
+
+---
+
+## 📁 Structure du Projet
+
+Le projet a été pensé pour être modulaire, facilitant la maintenance et l'évolution des fonctionnalités.
+
+```text
+coach-foot-app/
+├── index.html          # Point d'entrée unique (structure, modals, chargement des scripts)
+├── css/
+│   └── style.css       # Design system, variables globales, styles des composants
+└── js/                 # Logique applicative découpée par domaine
+    ├── config.js       # Clés Supabase, définitions des schémas tactiques (4-3-3, etc.)
+    ├── helpers.js      # Utilitaires (formatage de date, génération de code, toast)
+    ├── auth.js         # Inscription, connexion, mot de passe oublié, déconnexion
+    ├── team.js         # Création d'équipe (Coach) et rattachement via code (Joueur)
+    ├── players.js      # Gestion de l'effectif, des statuts et modification de joueurs
+    ├── compo.js        # Terrain interactif (drag & drop), auto-triage et sauvegarde
+    ├── planning.js     # Création d'événements (matchs/entraînements), gestion des présences
+    ├── history.js      # Saisie des scores, buteurs, notes des joueurs (étoiles)
+    ├── messages.js     # Générateur de convocations, presse-papiers, page d'accueil joueur
+    ├── settings.js     # Affichage du code d'invitation (Coach)
+    └── app.js          # Boot séquence, routage interne (switchPage), chargement des données
+```
+
+---
+
+## 🗄️ Modèle de Données (Supabase)
+
+L'isolation des données repose sur la colonne fondamentale `team_id` présente dans toutes les tables.
+
+1.  **`profiles`** : Lié à Supabase Auth. Stocke le nom réel, le rôle (`coach` ou `player`), et le fameux `team_id`.
+2.  **`teams`** : Entité principale créée par un coach. Possède un nom et un `invite_code` unique à 6 lettres.
+3.  **`players`** : Les joueurs de l'équipe (créés par le coach ou liés automatiquement au profil d'un utilisateur joueur).
+4.  **`events`** : Les matchs et entraînements (date, heure, adversaire).
+5.  **`availabilities`** : Les présences. Fait le lien entre un joueur et un événement (`confirmed`, `declined`, `pending`).
+6.  **`compositions` / `composition_slots`** : Sauvegarde la tactique et le placement exact (coordonnées X/Y) de chaque joueur sur le terrain.
+7.  **`match_results` / `player_match_stats`** : Historique des scores, commentaires du match, buts marqués individuellement et note (sur 5 étoiles).
+8.  **`messages`** : Convocations textuelles générées par le coach.
+
+---
+
+## 🔄 Workflows Utilisateurs
+
+La plateforme s'adapte automatiquement selon le rôle choisi à l'inscription.
+
+### 🎯 Workflow Coach (Administrateur)
+1.  **Inscription** : S'inscrit en tant que "Coach".
+2.  **Configuration** : Crée une équipe → Le système génère un Code d'Invitaiton.
+3.  **Gestion de l'Effectif** : Ajoute des joueurs (nom, poste, numéro) dans l'onglet "Joueurs".
+4.  **Préparation** : 
+    *   Crée un match dans le "Planning".
+    *   Prépare la "Compo" (glisser-déposer des joueurs sur le terrain SVG).
+    *   Génère une convocation dans "Messages" listant les joueurs disponibles.
+5.  **Post-Match** : Saisit le score, les buteurs et note la performance de ses joueurs dans "Historique".
+
+### ⚽ Workflow Joueur
+1.  **Inscription** : S'inscrit en tant que "Joueur" en précisant son poste.
+2.  **Configuration** : Rentre le Code d'Invitation donné par son coach.
+3.  **Visualisation (Accueil)** : Voit le prochain match à venir et le dernier message du coach.
+4.  **Action** : Indique sa disponibilité pour le prochain match (Présent / Absent / Incertain).
+
+---
+
+## ⚙️ Workflow de Développement & Déploiement
+
+Le processus pour ajouter de nouvelles fonctionnalités ou corriger des bugs est direct :
+
+1.  **Modification locale** : Éditez ou créez les fichiers HTML/CSS/JS dans votre éditeur de code. (ex: ajout d'une modale dans `index.html` et de la fonction dans `/js/players.js`).
+2.  **Vérification** : Il n'y a pas de processus de *build* complexe (pas de Node.js, Webpack, etc. requis). L'application peut être testée en l'ouvrant simplement dans un navigateur local.
+3.  **Déploiement Git** :
+    ```bash
+    git add .
+    git commit -m "✨ Ajout d'une nouvelle fonctionnalité"
+    git push origin main
+    ```
+4.  **Mise en ligne automatique** : GitHub Pages détecte le *push* sur la branche `main` et met l'application à jour à l'adresse URL publique. Le cache met généralement de 1 à 3 minutes à se rafraîchir.
+
+> [!TIP]
+> Si une mise à jour n'apparaît pas sur mobile, indiquez aux utilisateurs de forcer le rafraîchissement (`Pull to refresh`) ou de vider le cache de l'appareil.
