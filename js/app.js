@@ -259,6 +259,7 @@ document.getElementById('eType').addEventListener('change', function() {
 // ── Gestionnaire d'état d'authentification ─────────────────────────
 // Ce bloc écoute tous les changements de session (connexion, déconnexion, etc.)
 let _booting = false;
+let _appReady = false;
 sb.auth.onAuthStateChange(async (event, session) => {
   // Cas spécial : l'utilisateur vient de cliquer sur un lien de reset de mot de passe
   if (event === 'PASSWORD_RECOVERY') {
@@ -267,10 +268,21 @@ sb.auth.onAuthStateChange(async (event, session) => {
   }
 
   if (session?.user) {
+    // Rafraîchissement de token ou mise à jour utilisateur : ne pas relancer le boot
+    if (_appReady && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+      user = session.user;
+      return;
+    }
     if (_booting) return;
     _booting = true;
-    try { await boot(session.user); } finally { _booting = false; }
+    try {
+      await boot(session.user);
+      _appReady = true;
+    } finally {
+      _booting = false;
+    }
   } else {
+    _appReady = false;
     // Utilisateur déconnecté → retour à l'écran de connexion
     document.getElementById('teamSetupWrap').style.display      = 'none';
     document.getElementById('changePasswordWrap').style.display = 'none';
