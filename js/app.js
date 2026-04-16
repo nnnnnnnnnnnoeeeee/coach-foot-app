@@ -252,6 +252,7 @@ document.getElementById('eType').addEventListener('change', function() {
 
 // ── Gestionnaire d'état d'authentification ─────────────────────────
 // Ce bloc écoute tous les changements de session (connexion, déconnexion, etc.)
+let _booting = false;
 sb.auth.onAuthStateChange(async (event, session) => {
   // Cas spécial : l'utilisateur vient de cliquer sur un lien de reset de mot de passe
   if (event === 'PASSWORD_RECOVERY') {
@@ -260,7 +261,9 @@ sb.auth.onAuthStateChange(async (event, session) => {
   }
 
   if (session?.user) {
-    await boot(session.user);
+    if (_booting) return;
+    _booting = true;
+    try { await boot(session.user); } finally { _booting = false; }
   } else {
     // Utilisateur déconnecté → retour à l'écran de connexion
     document.getElementById('teamSetupWrap').style.display      = 'none';
