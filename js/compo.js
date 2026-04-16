@@ -17,7 +17,8 @@ function renderPitch() {
   const wrap      = document.getElementById('pitchWrap');
   const dotsEl    = document.getElementById('pitchDots');
   const benchEl   = document.getElementById('benchZone');
-  const positions = SCHEMAS[currentCompo.schema];
+  const format    = currentCompo.format || 11;
+  const positions = FORMAT_SCHEMAS[format][currentCompo.schema] || FORMAT_SCHEMAS[11]['4-3-3'];
   const disponibles = players.filter(p => p.status === 'dispo');
 
   // Si aucun slot défini, placer automatiquement les joueurs par poste
@@ -57,13 +58,27 @@ function renderPitch() {
 
   // Dessiner le banc
   if (!benchPlayers.length) {
-    benchEl.innerHTML = `<div style="font-size:12px; color:var(--muted)">Aucun remplaçant</div>`;
+    benchEl.innerHTML = `<div style="font-size:12px; color:var(--muted); text-align:center; padding:8px;">
+      Aucun joueur disponible.<br>
+      ${isCoach() ? `<button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openModal('modalPlayer')">+ Ajouter un joueur</button>` : ''}
+    </div>`;
   } else {
-    benchEl.innerHTML = benchPlayers.map((p, i) => `
+    let benchHtml = benchPlayers.map((p, i) => `
       <div class="pdot bench-dot" id="bdot_${i}" style="position:relative; transform:none; cursor:grab" data-idx="${i}" data-type="bench">
         <div class="pdot-circle" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1; box-shadow:none">${initials(p.name)}</div>
         <div class="pdot-label" style="color:var(--text); text-shadow:none">${p.name.split(' ')[0]}</div>
       </div>`).join('');
+      
+      
+    if (isCoach()) {
+      benchHtml += `
+      <div onclick="openModal('modalPlayer')" style="display:flex;flex-direction:column;align-items:center;cursor:pointer;width:44px;margin:2px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
+        <div style="width:38px;height:38px;border-radius:50%;border:2px dashed var(--g);background:#f0fdf4;color:var(--g);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:300;margin-bottom:2px;box-shadow:0 2px 5px rgba(0,0,0,.05)">+</div>
+        <div style="color:var(--g);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:0.5px">Nouveau</div>
+      </div>`;
+    }
+    
+    benchEl.innerHTML = benchHtml;
   }
 
   // Drag & drop uniquement pour le coach
@@ -128,10 +143,28 @@ function setupDrag(pitchWrap, dotsEl, benchEl) {
         document.removeEventListener('touchmove', handleMove);
         document.removeEventListener('touchend',  handleEnd);
 
+        // Si on a juste cliqué sans bouger
+        if (lastX === undefined || lastY === undefined) {
+          renderPitch();
+          return;
+        }
+
         // --- Logique métier de l'échange (Swap) ---
         // Vérifier si déposé sur le terrain ou sur un autre joueur
+        // Cache temporairement le point en cours de drag
+        dot.style.visibility = 'hidden';
         const dropPoint = document.elementFromPoint(lastX, lastY);
         const targetDot = dropPoint ? dropPoint.closest('.pdot') : null;
+        dot.style.visibility = ''; // On le réaffiche
+
+        const targetBenchZone = dropPoint ? dropPoint.closest('#benchZone') : null;
+        
+        // Si on lâche un joueur du terrain dans la zone du banc (mais pas sur un joueur)
+        if (!targetDot && dotType === 'pitch' && targetBenchZone) {
+             currentCompo.slots[idx].playerId = null;
+             renderPitch();
+             return;
+        }
 
         if (targetDot && targetDot !== dot) {
            const targetType = targetDot.dataset.type;
@@ -185,9 +218,30 @@ function setupDrag(pitchWrap, dotsEl, benchEl) {
   });
 }
 
+// ── Changer de format (11v11, 8v8, 5v5) ──────────────────────────────
+function setFormat(format, btn) {
+  // MAJ des boutons format
+  document.querySelectorAll('.format-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Récupérer les schémas du nouveau format
+  const schemas = Object.keys(FORMAT_SCHEMAS[format]);
+  const defaultSchema = schemas[0];
+  
+  // Générer les pilules de schémas
+  const pillsHtml = schemas.map(schema => 
+    `<div class="schema-pill ${schema === defaultSchema ? 'active' : ''}" onclick="setSchema('${schema}', this)">${schema}</div>`
+  ).join('');
+  document.getElementById('schemaPills').innerHTML = pillsHtml;
+
+  // Appliquer le changement
+  currentCompo = { format, schema: defaultSchema, slots: [], eventId: currentCompo.eventId };
+  renderPitch();
+}
+
 // ── Changer de formation ────────────────────────────────────────────
 function setSchema(schema, btn) {
-  currentCompo = { schema, slots: [], eventId: currentCompo.eventId };
+  currentCompo = { format: currentCompo.format || 11, schema, slots: [], eventId: currentCompo.eventId };
   document.querySelectorAll('.schema-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   renderPitch();

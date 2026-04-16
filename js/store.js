@@ -23,7 +23,7 @@ class AppStore {
       league_teams: [],
       availabilities: [],
       event_messages: [],
-      currentCompo: { schema: '4-3-3', slots: [], eventId: null },
+      currentCompo: { format: 11, schema: '4-3-3', slots: [], eventId: null },
       selectedRole: 'coach'
     };
     this.listeners = {};

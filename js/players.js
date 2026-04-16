@@ -97,7 +97,10 @@ async function toggleStatus(id, status) {
   await sb.from('players').update({ status }).eq('id', id);
   const p = players.find(p => p.id === id);
   if (p) p.status = status;
-  renderPlayers();
+  
+  const currentPage = document.querySelector('.nav-btn.active')?.dataset.page;
+  if (currentPage === 'compo') renderPitch();
+  else renderPlayers();
   toast('Statut mis à jour');
 }
 
@@ -118,8 +121,12 @@ async function savePlayer() {
 
   const { data: d, error } = await sb.from('players').insert(data).select().single();
   if (!error) {
-    players.push(d);
-    renderPlayers();
+    players = [...players, d]; // Déclenche le setter du store
+    
+    const currentPage = document.querySelector('.nav-btn.active')?.dataset.page;
+    if (currentPage === 'compo') renderPitch();
+    else renderPlayers();
+    
     closeModal('modalPlayer');
     toast('Joueur ajouté ✓');
     ['pName', 'pNum', 'pNotes', 'pRating'].forEach(id => document.getElementById(id).value = '');
@@ -134,6 +141,9 @@ async function deletePlayer(id) {
   await sb.from('players').delete().eq('id', id);
   players = players.filter(p => p.id !== id);
   closeModal('modalPlayerDetail');
-  renderPlayers();
+  
+  const currentPage = document.querySelector('.nav-btn.active')?.dataset.page;
+  if (currentPage === 'compo') renderPitch();
+  else renderPlayers();
   toast('Joueur supprimé');
 }

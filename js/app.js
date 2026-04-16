@@ -245,7 +245,7 @@ async function loadAll() {
 // ── Bouton flottant "+" ────────────────────────────────────────────
 function onFab() {
   const currentPage = document.querySelector('.nav-btn.active')?.dataset.page;
-  if (currentPage === 'joueurs')  openModal('modalPlayer');
+  if (currentPage === 'joueurs' || currentPage === 'compo') openModal('modalPlayer');
   else if (currentPage === 'planning') openModal('modalEvent');
   else if (currentPage === 'messages') openModal('modalMessage');
   else openModal('modalEvent');

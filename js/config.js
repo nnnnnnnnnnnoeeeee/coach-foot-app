@@ -22,38 +22,100 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
   });
 });
 
-// ── Formations tactiques disponibles ──────────────────────────────
-// Chaque formation définit les positions des joueurs sur le terrain
+// ── Formations tactiques par format de jeu ─────────────────────────
 // x et y sont des pourcentages (0-100) depuis le coin supérieur gauche
-const SCHEMAS = {
-  '4-3-3': [
-    { role: 'GK',  x: 50, y: 91 },
-    { role: 'RB',  x: 20, y: 75 }, { role: 'CB', x: 38, y: 75 },
-    { role: 'CB',  x: 62, y: 75 }, { role: 'LB', x: 80, y: 75 },
-    { role: 'CM',  x: 25, y: 55 }, { role: 'CM', x: 50, y: 52 }, { role: 'CM', x: 75, y: 55 },
-    { role: 'RW',  x: 20, y: 30 }, { role: 'ST', x: 50, y: 22 }, { role: 'LW', x: 80, y: 30 }
-  ],
-  '4-4-2': [
-    { role: 'GK',  x: 50, y: 91 },
-    { role: 'RB',  x: 20, y: 75 }, { role: 'CB', x: 38, y: 75 },
-    { role: 'CB',  x: 62, y: 75 }, { role: 'LB', x: 80, y: 75 },
-    { role: 'RM',  x: 18, y: 54 }, { role: 'CM', x: 38, y: 54 },
-    { role: 'CM',  x: 62, y: 54 }, { role: 'LM', x: 82, y: 54 },
-    { role: 'ST',  x: 35, y: 28 }, { role: 'ST', x: 65, y: 28 }
-  ],
-  '3-5-2': [
-    { role: 'GK',  x: 50, y: 91 },
-    { role: 'CB',  x: 27, y: 75 }, { role: 'CB',  x: 50, y: 75 }, { role: 'CB',  x: 73, y: 75 },
-    { role: 'RWB', x: 13, y: 55 }, { role: 'CM',  x: 32, y: 52 },
-    { role: 'CM',  x: 50, y: 52 }, { role: 'CM',  x: 68, y: 52 }, { role: 'LWB', x: 87, y: 55 },
-    { role: 'ST',  x: 35, y: 28 }, { role: 'ST',  x: 65, y: 28 }
-  ],
-  '4-2-3-1': [
-    { role: 'GK',  x: 50, y: 91 },
-    { role: 'RB',  x: 20, y: 75 }, { role: 'CB',  x: 38, y: 75 },
-    { role: 'CB',  x: 62, y: 75 }, { role: 'LB',  x: 80, y: 75 },
-    { role: 'DM',  x: 35, y: 62 }, { role: 'DM',  x: 65, y: 62 },
-    { role: 'RAM', x: 20, y: 44 }, { role: 'CAM', x: 50, y: 42 }, { role: 'LAM', x: 80, y: 44 },
-    { role: 'ST',  x: 50, y: 24 }
-  ]
+const FORMAT_SCHEMAS = {
+
+  // ── 11 vs 11 ──────────────────────────────────────────────────────
+  11: {
+    '4-3-3': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'RB',  x: 20, y: 75 }, { role: 'CB', x: 38, y: 75 },
+      { role: 'CB',  x: 62, y: 75 }, { role: 'LB', x: 80, y: 75 },
+      { role: 'CM',  x: 25, y: 55 }, { role: 'CM', x: 50, y: 52 }, { role: 'CM', x: 75, y: 55 },
+      { role: 'RW',  x: 20, y: 30 }, { role: 'ST', x: 50, y: 22 }, { role: 'LW', x: 80, y: 30 }
+    ],
+    '4-4-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'RB',  x: 20, y: 75 }, { role: 'CB', x: 38, y: 75 },
+      { role: 'CB',  x: 62, y: 75 }, { role: 'LB', x: 80, y: 75 },
+      { role: 'RM',  x: 18, y: 54 }, { role: 'CM', x: 38, y: 54 },
+      { role: 'CM',  x: 62, y: 54 }, { role: 'LM', x: 82, y: 54 },
+      { role: 'ST',  x: 35, y: 28 }, { role: 'ST', x: 65, y: 28 }
+    ],
+    '3-5-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 27, y: 75 }, { role: 'CB',  x: 50, y: 75 }, { role: 'CB',  x: 73, y: 75 },
+      { role: 'RWB', x: 13, y: 55 }, { role: 'CM',  x: 32, y: 52 },
+      { role: 'CM',  x: 50, y: 52 }, { role: 'CM',  x: 68, y: 52 }, { role: 'LWB', x: 87, y: 55 },
+      { role: 'ST',  x: 35, y: 28 }, { role: 'ST',  x: 65, y: 28 }
+    ],
+    '4-2-3-1': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'RB',  x: 20, y: 75 }, { role: 'CB',  x: 38, y: 75 },
+      { role: 'CB',  x: 62, y: 75 }, { role: 'LB',  x: 80, y: 75 },
+      { role: 'DM',  x: 35, y: 62 }, { role: 'DM',  x: 65, y: 62 },
+      { role: 'RAM', x: 20, y: 44 }, { role: 'CAM', x: 50, y: 42 }, { role: 'LAM', x: 80, y: 44 },
+      { role: 'ST',  x: 50, y: 24 }
+    ]
+  },
+
+  // ── 8 vs 8 ────────────────────────────────────────────────────────
+  8: {
+    '3-3-1': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 25, y: 74 }, { role: 'CB',  x: 50, y: 74 }, { role: 'CB',  x: 75, y: 74 },
+      { role: 'RM',  x: 18, y: 52 }, { role: 'CM',  x: 50, y: 52 }, { role: 'LM',  x: 82, y: 52 },
+      { role: 'ST',  x: 50, y: 24 }
+    ],
+    '3-2-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 25, y: 74 }, { role: 'CB',  x: 50, y: 74 }, { role: 'CB',  x: 75, y: 74 },
+      { role: 'CM',  x: 35, y: 54 }, { role: 'CM',  x: 65, y: 54 },
+      { role: 'ST',  x: 33, y: 26 }, { role: 'ST',  x: 67, y: 26 }
+    ],
+    '2-4-1': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 35, y: 74 }, { role: 'CB',  x: 65, y: 74 },
+      { role: 'RM',  x: 15, y: 52 }, { role: 'CM',  x: 38, y: 52 },
+      { role: 'CM',  x: 62, y: 52 }, { role: 'LM',  x: 85, y: 52 },
+      { role: 'ST',  x: 50, y: 24 }
+    ],
+    '2-3-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 35, y: 74 }, { role: 'CB',  x: 65, y: 74 },
+      { role: 'RM',  x: 20, y: 54 }, { role: 'CM',  x: 50, y: 54 }, { role: 'LM',  x: 80, y: 54 },
+      { role: 'ST',  x: 33, y: 26 }, { role: 'ST',  x: 67, y: 26 }
+    ]
+  },
+
+  // ── 5 vs 5 ────────────────────────────────────────────────────────
+  5: {
+    '2-1-1': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 33, y: 71 }, { role: 'CB',  x: 67, y: 71 },
+      { role: 'CM',  x: 50, y: 48 },
+      { role: 'ST',  x: 50, y: 24 }
+    ],
+    '1-2-1': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 50, y: 71 },
+      { role: 'CM',  x: 30, y: 50 }, { role: 'CM',  x: 70, y: 50 },
+      { role: 'ST',  x: 50, y: 24 }
+    ],
+    '1-1-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 50, y: 72 },
+      { role: 'CM',  x: 50, y: 52 },
+      { role: 'ST',  x: 33, y: 26 }, { role: 'ST',  x: 67, y: 26 }
+    ],
+    '2-2': [
+      { role: 'GK',  x: 50, y: 91 },
+      { role: 'CB',  x: 33, y: 71 }, { role: 'CB',  x: 67, y: 71 },
+      { role: 'ST',  x: 33, y: 26 }, { role: 'ST',  x: 67, y: 26 }
+    ]
+  }
 };
+
+// Alias pour la compatibilité avec l'ancien code (compo.js)
+const SCHEMAS = FORMAT_SCHEMAS[11];
