@@ -28,11 +28,17 @@ async function boot(u) {
   // 2. Charger le profil de l'utilisateur depuis la base de données
   console.log("Fetching profile...");
   let p = null;
+  const fetchProfile = () => Promise.race([
+    sb.from('profiles').select('*').eq('id', u.id).single(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
+  ]);
   try {
-    const { data, error } = await Promise.race([
-      sb.from('profiles').select('*').eq('id', u.id).single(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
-    ]);
+    let { data, error } = await fetchProfile();
+    // Supabase free tier cold start : une seule relance automatique
+    if (error || !data) {
+      console.warn("Profile fetch retrying...");
+      ({ data, error } = await fetchProfile());
+    }
     if (error) console.warn("Profile fetch error:", error);
     p = data;
   } catch (e) {
