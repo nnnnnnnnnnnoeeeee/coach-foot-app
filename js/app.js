@@ -111,7 +111,7 @@ async function initApp() {
   document.getElementById('teamNameDisplay').textContent = currentTeam?.name || '';
   document.getElementById('settingsTopBtn').style.display = isCoach() ? 'flex' : 'none';
 
-  initDarkMode();
+  if (typeof initDarkMode === 'function') initDarkMode();
   buildNav();
   await loadAll();
   setupRealtime();
