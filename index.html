@@ -310,6 +310,25 @@
     <div class="field"><label>Titre</label><input type="text" id="eTitle" placeholder="Match vs FC Rival"/></div>
     <div class="field" id="eOpponentField"><label>Adversaire (Amical)</label><input type="text" id="eOpponent" placeholder="FC Rival"/></div>
     <div class="field" id="eLeagueOpponentField" style="display:none"><label>Adversaire (Tournoi)</label><select id="eLeagueOpponent"></select></div>
+    <div class="field" id="eLeaguePhaseField" style="display:none">
+      <label>Phase du tournoi</label>
+      <select id="eLeaguePhase" onchange="updateLeaguePhaseFields()">
+        <option value="league">Ligue classique</option>
+        <option value="group">Phase de groupes</option>
+        <option value="qf">Quart de finale</option>
+        <option value="sf">Demi-finale</option>
+        <option value="final">Finale</option>
+      </select>
+    </div>
+    <div class="field" id="eLeagueGroupField" style="display:none">
+      <label>Groupe</label>
+      <select id="eLeagueGroup">
+        <option value="A">Groupe A</option>
+        <option value="B">Groupe B</option>
+        <option value="C">Groupe C</option>
+        <option value="D">Groupe D</option>
+      </select>
+    </div>
     <div class="field-row">
       <div class="field"><label>Date</label><input type="date" id="eDate"/></div>
       <div class="field"><label>Heure</label><input type="time" id="eTime"/></div>

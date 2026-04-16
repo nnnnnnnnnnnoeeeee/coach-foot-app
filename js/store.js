@@ -16,6 +16,13 @@ class AppStore {
       events: [],
       messages: [],
       results: [],
+      fines: [],
+      cars: [],
+      mvp_votes: [],
+      league_matches: [],
+      league_teams: [],
+      availabilities: [],
+      event_messages: [],
       currentCompo: { schema: '4-3-3', slots: [], eventId: null },
       selectedRole: 'coach'
     };

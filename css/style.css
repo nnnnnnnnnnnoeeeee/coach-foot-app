@@ -291,3 +291,127 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
    ANIMATIONS
    ══════════════════════════════════════════ */
 @keyframes spin{to{transform:rotate(360deg)}}
+
+
+/* ══════════════════════════════════════════
+   DARK MODE
+   ══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:#0f172a;--surface:#1e293b;--border:#334155;--border2:#475569;
+  --text:#f1f5f9;--muted:#94a3b8;--muted2:#64748b;
+  --g3:#14532d;--g2:#22c55e;
+  --red2:#450a0a;--amber2:#431407;--blue2:#172554;
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+  --shadow-md:0 4px 6px rgba(0,0,0,.3),0 2px 4px rgba(0,0,0,.2);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.4),0 4px 10px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+[data-theme="dark"] body{background:var(--bg)}
+[data-theme="dark"] .auth-card,[data-theme="dark"] .setup-card{background:#1e293b;color:var(--text)}
+[data-theme="dark"] .field input,[data-theme="dark"] .field select{background:#0f172a;color:var(--text);border-color:var(--border2)}
+[data-theme="dark"] .topbar{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .bottom-nav{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .modal{background:var(--surface)}
+[data-theme="dark"] .card,[data-theme="dark"] .event-card,[data-theme="dark"] .result-card,[data-theme="dark"] .msg-card{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .btn-outline{color:var(--text);border-color:var(--border2)}
+[data-theme="dark"] .btn-outline:hover{background:var(--border)}
+[data-theme="dark"] .msg-body{background:var(--bg);border-color:var(--border)}
+[data-theme="dark"] .stat-card{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .schema-pill{background:var(--surface);border-color:var(--border2);color:var(--muted)}
+[data-theme="dark"] .avail-btn{background:var(--surface)}
+[data-theme="dark"] .notes-tag{background:var(--bg);border-color:var(--border)}
+[data-theme="dark"] .settings-section{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .settings-row{border-color:var(--border)}
+[data-theme="dark"] .filter-pill{background:var(--surface);border-color:var(--border2);color:var(--muted)}
+[data-theme="dark"] .chat-bubble.me{background:#14532d}
+[data-theme="dark"] .chat-bubble.other{background:#334155}
+[data-theme="dark"] .chat-input-wrap{background:var(--surface);border-color:var(--border)}
+[data-theme="dark"] .chat-input{background:#0f172a;color:var(--text);border-color:var(--border2)}
+[data-theme="dark"] table thead tr{background:rgba(255,255,255,.04)}
+
+
+/* ══════════════════════════════════════════
+   TOGGLE (dark mode switch)
+   ══════════════════════════════════════════ */
+.toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:24px;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked + .toggle-slider{background:var(--g)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+
+
+/* ══════════════════════════════════════════
+   FILTER PILLS (joueurs par poste)
+   ══════════════════════════════════════════ */
+.filter-bar{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-pill{padding:5px 13px;border:1px solid var(--border2);border-radius:20px;background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.filter-pill.active{background:var(--g);color:#fff;border-color:var(--g)}
+
+
+/* ══════════════════════════════════════════
+   PRÉSENCES (résumé coach)
+   ══════════════════════════════════════════ */
+.avail-summary{display:flex;gap:12px;margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:12px;font-weight:600}
+.avail-summary span{display:flex;align-items:center;gap:4px}
+
+
+/* ══════════════════════════════════════════
+   MÉTÉO
+   ══════════════════════════════════════════ */
+.weather-widget{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:var(--blue2);border-radius:8px;font-size:12px;color:var(--blue)}
+[data-theme="dark"] .weather-widget{background:#1e3a5f;color:#93c5fd}
+
+
+/* ══════════════════════════════════════════
+   CHAT PAR ÉVÉNEMENT
+   ══════════════════════════════════════════ */
+.chat-thread{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.chat-messages{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.chat-bubble{max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.4}
+.chat-bubble.me{background:var(--g3);color:var(--g2);align-self:flex-end;border-bottom-right-radius:4px}
+.chat-bubble.other{background:#f1f5f9;color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+[data-theme="dark"] .chat-bubble.other{background:#334155}
+.chat-author{font-size:10px;font-weight:600;opacity:.7;margin-bottom:2px}
+.chat-input-wrap{display:flex;gap:8px;align-items:center}
+.chat-input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.chat-input:focus{border-color:var(--g)}
+
+
+/* ══════════════════════════════════════════
+   TOURNOI / BRACKET
+   ══════════════════════════════════════════ */
+.tournament-tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px;margin-bottom:16px}
+.tournament-tab{flex:1;padding:7px;border:none;background:none;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s;font-family:'DM Sans',sans-serif}
+.tournament-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.group-section{margin-bottom:20px}
+.group-label{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding:6px 10px;background:var(--g3);color:var(--g2);border-radius:8px;display:inline-block}
+.bracket-round{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.bracket-match{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow)}
+.bracket-round-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.bracket-team{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px}
+.bracket-team.winner{font-weight:700;color:var(--g)}
+.bracket-divider{height:1px;background:var(--border);margin:4px 0}
+.phase-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600;margin-left:6px;text-transform:uppercase;letter-spacing:.3px}
+.phase-group{background:#dbeafe;color:#1d4ed8}
+.phase-qf{background:#fef3c7;color:#b45309}
+.phase-sf{background:#fde8ff;color:#7c3aed}
+.phase-final{background:#fef9c3;color:#854d0e}
+
+
+/* ══════════════════════════════════════════
+   AVAIL BTN LATE (retard)
+   ══════════════════════════════════════════ */
+.avail-btn.late{border-color:var(--muted2);color:var(--muted);background:#fff}
+.avail-btn.late.active,.avail-btn.late:hover{background:#f1f5f9}
+
+
+/* ══════════════════════════════════════════
+   TOP BUTEURS
+   ══════════════════════════════════════════ */
+.scorer-row{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.scorer-row+.scorer-row{border-top:1px solid var(--border)}
+.scorer-rank{width:22px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0}
+.scorer-name{flex:1;font-weight:500;font-size:14px}
+.scorer-stat{font-size:12px;font-weight:600;display:flex;align-items:center;gap:3px}

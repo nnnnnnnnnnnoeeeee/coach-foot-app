@@ -111,8 +111,10 @@ async function initApp() {
   document.getElementById('teamNameDisplay').textContent = currentTeam?.name || '';
   document.getElementById('settingsTopBtn').style.display = isCoach() ? 'flex' : 'none';
 
+  initDarkMode();
   buildNav();
   await loadAll();
+  setupRealtime();
   switchPage(isCoach() ? 'joueurs' : 'home');
 }
 
@@ -130,11 +132,11 @@ function buildNav() {
         { id: 'messages',   icon: '💬', label: 'Messages'   }
       ]
     : [
-        { id: 'home',      icon: '🏠', label: 'Accueil'  },
-        { id: 'league',    icon: '🏆', label: 'Ligue'    },
-        { id: 'planning',  icon: '📅', label: 'Planning' },
-        { id: 'messages',  icon: '💬', label: 'Messages' },
-        { id: 'dashboard', icon: '👤', label: 'Profil'   }
+        { id: 'home',       icon: '🏠', label: 'Accueil'   },
+        { id: 'planning',   icon: '📅', label: 'Planning'  },
+        { id: 'historique', icon: '📊', label: 'Résultats' },
+        { id: 'league',     icon: '🏆', label: 'Ligue'     },
+        { id: 'dashboard',  icon: '👤', label: 'Profil'    }
       ];
 
   nav.innerHTML = tabs.map(t => `
@@ -201,6 +203,17 @@ async function loadAll() {
     sb.from('league_teams').select('*').order('name')
   ]);
 
+  // Charger les disponibilités pour tous les événements de l'équipe
+  const eventIds = (eData || []).map(e => e.id);
+  const { data: avData } = eventIds.length
+    ? await sb.from('availabilities').select('*').in('event_id', eventIds)
+    : { data: [] };
+
+  // Charger les messages de chat des événements
+  const { data: emData } = eventIds.length
+    ? await sb.from('event_messages').select('*').in('event_id', eventIds).order('created_at')
+    : { data: [] };
+
   store.update({
     players: pData || [],
     events: eData || [],
@@ -210,7 +223,9 @@ async function loadAll() {
     cars: cData || [],
     mvp_votes: vData || [],
     league_matches: lmData || [],
-    league_teams: ltData || []
+    league_teams: ltData || [],
+    availabilities: avData || [],
+    event_messages: emData || []
   });
 
   // Charger la dernière compo
@@ -243,18 +258,62 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 
 // ── Masquer le champ "adversaire" si type = entraînement ──────────
 document.getElementById('eType').addEventListener('change', function() {
-  document.getElementById('eOpponentField').style.display = this.value === 'match' ? '' : 'none';
-  document.getElementById('eLeagueOpponentField').style.display = this.value === 'league_match' ? '' : 'none';
-  
-  if(this.value === 'league_match') {
-      const teams = store.get('league_teams') || [];
-      // On ne peut pas s'affronter soi-même
-      document.getElementById('eLeagueOpponent').innerHTML = teams
-          .filter(t => t.id !== profile.team_id)
-          .map(t => `<option value="${t.id}">${t.name}</option>`)
-          .join('');
+  const isLeague = this.value === 'league_match';
+  const isMatch  = this.value === 'match';
+  document.getElementById('eOpponentField').style.display       = isMatch  ? '' : 'none';
+  document.getElementById('eLeagueOpponentField').style.display = isLeague ? '' : 'none';
+  document.getElementById('eLeaguePhaseField').style.display    = isLeague ? '' : 'none';
+  document.getElementById('eLeagueGroupField').style.display    = 'none';
+
+  if (isLeague) {
+    const teams = store.get('league_teams') || [];
+    document.getElementById('eLeagueOpponent').innerHTML = teams
+      .filter(t => t.id !== profile.team_id)
+      .map(t => `<option value="${t.id}">${t.name}</option>`)
+      .join('');
   }
 });
+
+function updateLeaguePhaseFields() {
+  const phase = document.getElementById('eLeaguePhase')?.value;
+  document.getElementById('eLeagueGroupField').style.display = phase === 'group' ? '' : 'none';
+}
+
+// ── Supabase Realtime ──────────────────────────────────────────────
+let _realtimeChannel = null;
+function setupRealtime() {
+  if (_realtimeChannel) sb.removeChannel(_realtimeChannel);
+
+  _realtimeChannel = sb.channel('coachfoot-realtime')
+    // Disponibilités : mise à jour en temps réel pour le coach
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'availabilities' }, async () => {
+      const eventIds = store.get('events').map(e => e.id);
+      if (!eventIds.length) return;
+      const { data } = await sb.from('availabilities').select('*').in('event_id', eventIds);
+      if (data) store.set('availabilities', data);
+      const page = document.querySelector('.nav-btn.active')?.dataset.page;
+      if (page === 'planning') renderPlanning();
+      if (page === 'home') renderPlayerHome();
+    })
+    // Chat : nouveaux messages en temps réel
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_messages' }, (payload) => {
+      const current = store.get('event_messages') || [];
+      if (!current.find(m => m.id === payload.new.id)) {
+        store.set('event_messages', [...current, payload.new]);
+        // Rafraîchir le chat si ouvert
+        const chatEl = document.getElementById('chat_' + payload.new.event_id);
+        if (chatEl) renderChatMessages(payload.new.event_id);
+      }
+    })
+    // Résultats ligue : mise à jour classement
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'league_matches' }, async () => {
+      const { data } = await sb.from('league_matches').select('*').order('match_date', { ascending: false });
+      if (data) store.set('league_matches', data);
+      const page = document.querySelector('.nav-btn.active')?.dataset.page;
+      if (page === 'league') renderLeague();
+    })
+    .subscribe();
+}
 
 // ── Gestionnaire d'état d'authentification ─────────────────────────
 // Ce bloc écoute tous les changements de session (connexion, déconnexion, etc.)

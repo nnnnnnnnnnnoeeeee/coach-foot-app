@@ -15,7 +15,7 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 // ── Variables globales (Proxy vers Store central) ─────────────────
 // On redirige les anciennes variables globales vers le store pour ne rien casser
 // tout en profitant du système réactif (Pub/Sub) de store.js.
-['user', 'profile', 'currentTeam', 'players', 'events', 'messages', 'results', 'fines', 'cars', 'mvp_votes', 'league_matches', 'league_teams', 'currentCompo', 'selectedRole'].forEach(key => {
+['user', 'profile', 'currentTeam', 'players', 'events', 'messages', 'results', 'fines', 'cars', 'mvp_votes', 'league_matches', 'league_teams', 'availabilities', 'event_messages', 'currentCompo', 'selectedRole'].forEach(key => {
   Object.defineProperty(window, key, {
     get: () => store.get(key),
     set: (val) => store.set(key, val)

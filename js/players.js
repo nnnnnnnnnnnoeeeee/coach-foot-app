@@ -7,6 +7,8 @@
  * - Le changement de statut (disponible / absent / incertain)
  */
 
+let _playerFilter = 'all';
+
 // ── Afficher la liste des joueurs ──────────────────────────────────
 function renderPlayers() {
   const disponibles = players.filter(p => p.status === 'dispo').length;
@@ -24,8 +26,19 @@ function renderPlayers() {
     return;
   }
 
+  // Filtre par poste
+  const filtered = _playerFilter === 'all' ? players : players.filter(p => p.position === _playerFilter);
+  const filterBar = `
+    <div class="filter-bar">
+      ${['all','GK','DEF','MID','ATT'].map(pos => `
+        <button class="filter-pill ${_playerFilter === pos ? 'active' : ''}"
+          onclick="_playerFilter='${pos}';renderPlayers()">
+          ${pos === 'all' ? 'Tous' : pos}
+        </button>`).join('')}
+    </div>`;
+
   // Carte pour chaque joueur
-  document.getElementById('playersList').innerHTML = players.map(p => `
+  document.getElementById('playersList').innerHTML = filterBar + filtered.map(p => `
     <div class="card" onclick="openPlayerDetail(${JSON.stringify(p).replace(/"/g, '&quot;')})">
       <div class="card-row">
         <div class="avatar av-${p.position}">${initials(p.name)}</div>

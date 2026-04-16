@@ -44,6 +44,21 @@ function renderSettings() {
       </div>
     </div>
 
+    <!-- Apparence -->
+    <div class="settings-section" style="margin-bottom:16px">
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Apparence</div>
+          <div class="settings-row-value">Mode sombre</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" ${document.documentElement.getAttribute('data-theme')==='dark'?'checked':''}
+            onchange="toggleDarkMode(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Section Caisse Noire -->
     <button class="btn btn-outline" style="width:100%; margin-bottom:16px" onclick="switchPage('fines')">💰 Ouvrir la Caisse (Amendes)</button>
 

@@ -22,22 +22,25 @@ function renderDashboard() {
   }
 
   // Calcul des statistiques
-  let matchsJoues = 0;
-  let totalButs = 0;
+  let matchsJoues = 0, totalButs = 0, totalAssists = 0, yellowCards = 0, redCards = 0;
   let notes = [];
 
-  // Parcourir tous les résultats pour trouver les stats de ce joueur
   results.forEach(res => {
     if (res.player_match_stats) {
-      const statsMatch = res.player_match_stats.find(s => s.player_id === myPlayer.id);
-      if (statsMatch) {
+      const s = res.player_match_stats.find(s => s.player_id === myPlayer.id);
+      if (s) {
         matchsJoues++;
-        if (statsMatch.goals) totalButs += statsMatch.goals;
-        if (statsMatch.rating) notes.push(statsMatch.rating);
+        totalButs    += (s.goals        || 0);
+        totalAssists += (s.assists      || 0);
+        yellowCards  += (s.yellow_cards || 0);
+        redCards     += (s.red_cards    || 0);
+        if (s.rating) notes.push(s.rating);
       }
     }
   });
 
+  // Victoires MVP
+  const mvpWins = (store.get('mvp_votes') || []).filter(v => v.voted_player_id === myPlayer.id).length;
   const noteMoyenne = notes.length ? (notes.reduce((a, b) => a + b, 0) / notes.length).toFixed(1) : '-';
 
   // Construction du Dashboard
@@ -58,7 +61,7 @@ function renderDashboard() {
 
     <!-- Statistiques de la saison -->
     <div class="section-label">Ma Saison</div>
-    <div class="stats-row" style="margin-bottom:20px">
+    <div class="stats-row" style="margin-bottom:10px">
       <div class="stat-card" style="border-top:3px solid var(--blue)">
         <div class="stat-num" style="color:var(--blue)">${matchsJoues}</div>
         <div class="stat-label">Matchs</div>
@@ -70,6 +73,20 @@ function renderDashboard() {
       <div class="stat-card" style="border-top:3px solid var(--amber)">
         <div class="stat-num" style="color:var(--amber)">${noteMoyenne}</div>
         <div class="stat-label">Note Moy. ⭐</div>
+      </div>
+    </div>
+    <div class="stats-row" style="margin-bottom:20px">
+      <div class="stat-card" style="border-top:3px solid var(--blue)">
+        <div class="stat-num" style="color:var(--blue)">${totalAssists}</div>
+        <div class="stat-label">Passes 🅰</div>
+      </div>
+      <div class="stat-card" style="border-top:3px solid #eab308">
+        <div class="stat-num" style="color:#b45309">${yellowCards}</div>
+        <div class="stat-label">🟨 Jaunes</div>
+      </div>
+      <div class="stat-card" style="border-top:3px solid var(--red)">
+        <div class="stat-num" style="color:var(--red)">${mvpWins}${mvpWins > 0 ? ' 👑' : ''}</div>
+        <div class="stat-label">MVP</div>
       </div>
     </div>
 
